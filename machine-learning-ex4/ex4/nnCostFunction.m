@@ -63,22 +63,36 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 
+% forwardfeed 
+a1 = [ones(m,1) X];
+a2 = sigmoid(a1*Theta1');
+a2 = [ones(m,1) a2];	
+a3 = sigmoid(a2*Theta2');
+y = repmat([1:num_labels], m, 1) == repmat(y, 1, num_labels);
+J = (-1 / m) * sum(sum(y.*log(a3) + (1 - y).*log(1 - a3)));
 
+% regularization
+regularization = (lambda/(2*m))*((sum(sum(Theta1(:,2:end).^2))) + sum(sum(Theta2(:,2:end).^2)));
+J = J + regularization;
 
+% backpropogation
+del1 = zeros(size(Theta1));
+del2 = zeros(size(Theta2));
+for i = 1:m,
+	a1i = a1(i,:);
+	a2i = a2(i,:);
+	a3i = a3(i,:);
+	yi = y(i,:);
+	d3 = a3i - yi;
+% since Theta1 is a column vector, adding one to Theta1 corresponds to [1;Theta1]
+	d2 = Theta2'*d3' .* sigmoidGradient([1;Theta1 * a1i']); 
+	del1 = del1 + d2(2:end)*a1i;
+	del2 = del2 + d3' * a2i;
+end;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+% regularized 
+Theta1_grad = 1/m * del1 + (lambda/m)*[zeros(size(Theta1, 1), 1) Theta1(:,2:end)];
+Theta2_grad = 1/m * del2 + (lambda/m)*[zeros(size(Theta2, 1), 1) Theta2(:,2:end)];
 
 % -------------------------------------------------------------
 
